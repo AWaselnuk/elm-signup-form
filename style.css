@@ -1,0 +1,69 @@
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: 'Brandon Grotesque', 'Helvetica Neue', sans-serif;
+  font-size: 18px;
+  width: 100%;
+  height: 100%;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  background-image: url('http://media.giphy.com/media/ZzzOASrXSxuwg/giphy.gif');
+}
+
+#form-signup {
+  width: 90%;
+  max-width: 600px;
+  padding: 1rem;
+  margin: 5% auto;
+  background-color: rgba(60, 60, 60, 0.8);
+  color: #fff;
+  border-radius: 3px;
+}
+
+h1 {
+  font-size: 1.618rem;
+  font-weight: 400;
+  margin-bottom: 2rem;
+}
+
+label {
+  display: inline-block;
+  margin-bottom: 5px;
+}
+
+input,
+.btn {
+  display: block;
+  width: 100%;
+  margin-bottom: 5px;
+  padding: 1rem;
+  border: none;
+  border-radius: 3px;
+}
+
+.form-control {
+  margin-bottom: 1rem;
+}
+
+.error {
+  color: #F97990;
+}
+
+.btn-submit {
+  font-family: inherit;
+  font-size: 1rem;
+  color: #fff;
+  background-color: #78B657;
+  text-align: center;
+}
+
+.btn-submit:hover {
+  cursor: pointer;
+}
+
+.text-center {
+  text-align: center;
+}
