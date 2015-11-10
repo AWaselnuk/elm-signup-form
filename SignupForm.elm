@@ -18,7 +18,26 @@ import Json.Decode exposing (succeed)
 -- namespace, specifically "id", "type'", "for", "value", and "class".
 import Html.Attributes exposing (id, type', for, value, class)
 
--- TODO: Document functions using type annotations
+type alias Model =
+  { email: String
+  , password: String
+  , storename: String
+  , errors: Errors
+  }
+
+type alias Errors =
+  { email: String
+  , password: String
+  , storename: String
+  , storenameTaken: Bool
+  }
+
+type alias Action =
+  { actionType: String
+  , payload: String
+  }
+
+emailInputView : Signal.Address Action -> Model -> Html
 emailInputView actionDispatcher model =
   div
     [ class "form-control" ]
@@ -33,6 +52,7 @@ emailInputView actionDispatcher model =
     , div [ class "error"] [ text model.errors.email ]
     ]
 
+passwordInputView : Signal.Address Action -> Model -> Html
 passwordInputView actionDispatcher model =
   div
     [ class "form-control" ]
@@ -47,6 +67,7 @@ passwordInputView actionDispatcher model =
     , div [ class "error"] [ text model.errors.password ]
     ]
 
+storenameInputView : Signal.Address Action -> Model -> Html
 storenameInputView actionDispatcher model =
   div
     [ class "form-control" ]
@@ -61,6 +82,7 @@ storenameInputView actionDispatcher model =
     , div [ class "error" ] [ text (viewStorenameErrors model) ]
     ]
 
+viewStorenameErrors : Model -> String
 viewStorenameErrors model =
   if model.errors.storenameTaken then
     "That storename is taken!"
@@ -68,6 +90,7 @@ viewStorenameErrors model =
     model.errors.storename
 
 -- The view function which takes a model as its only argument
+view : Signal.Address Action -> Model -> Html
 view actionDispatcher model =
   form
     [ id "form-signup" ]
@@ -85,7 +108,7 @@ view actionDispatcher model =
 
 -- TODO: Use a proper submit input and intercept the form submit evet
 -- https://groups.google.com/forum/#!msg/elm-discuss/W3X_m1mE70w/02J3Jf4dCQAJ
-
+getErrors : Model -> Errors
 getErrors model =
   { email =
       if model.email == "" then
@@ -106,15 +129,19 @@ getErrors model =
       model.errors.storenameTaken
   }
 
+initialErrors : Errors
 initialErrors =
   { email = "", password = "", storename = "", storenameTaken = False }
 
+initialModel : Model
 initialModel =
   { email = "", password = "", storename = "", errors = initialErrors }
 
 -- The update function takes an action and a model and returns
 -- a new, updated model
 -- and a description of any effects we want done (i.e. fire AJAX, start animation)
+-- TODO: Why does this type annotation work?
+update : Action -> Model -> (Model, Effects.Effects Action)
 update action model =
   -- TODO: Why use a record with actionType instead of our own Elm union types?
   -- see example: http://package.elm-lang.org/packages/evancz/start-app/2.0.1/
@@ -145,6 +172,7 @@ update action model =
   else
     ( model, Effects.none )
 
+withStorenameTaken : Bool -> Model -> Model
 withStorenameTaken isTaken model =
   let
     currentErrors =
@@ -155,6 +183,7 @@ withStorenameTaken isTaken model =
    { model | errors <- newErrors }
 
 -- This sets up the elm architecture using StartApp which wraps some boilerplate wiring
+app : StartApp.App Model
 app =
   StartApp.start
     { init = ( initialModel, Effects.none )
@@ -163,6 +192,8 @@ app =
     , inputs = []
     }
 
+-- TODO: Why Signal Html type coming out of here?
+main : Signal Html
 main =
   app.html
 

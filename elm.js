@@ -13395,7 +13395,35 @@ Elm.SignupForm.make = function (_elm) {
    var main = app.html;
    var tasks = Elm.Native.Task.make(_elm).performSignal("tasks",
    app.tasks);
+   var Action = F2(function (a,b) {
+      return {_: {}
+             ,actionType: a
+             ,payload: b};
+   });
+   var Errors = F4(function (a,
+   b,
+   c,
+   d) {
+      return {_: {}
+             ,email: a
+             ,password: b
+             ,storename: c
+             ,storenameTaken: d};
+   });
+   var Model = F4(function (a,
+   b,
+   c,
+   d) {
+      return {_: {}
+             ,email: a
+             ,errors: d
+             ,password: b
+             ,storename: c};
+   });
    _elm.SignupForm.values = {_op: _op
+                            ,Model: Model
+                            ,Errors: Errors
+                            ,Action: Action
                             ,emailInputView: emailInputView
                             ,passwordInputView: passwordInputView
                             ,storenameInputView: storenameInputView
