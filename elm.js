@@ -13224,63 +13224,71 @@ Elm.SignupForm.make = function (_elm) {
              "") ? "Please enter a storename" : ""
              ,storenameTaken: model.errors.storenameTaken};
    };
-   var update = F2(function (action,
-   model) {
-      return _U.eq(action.actionType,
-      "VALIDATE") ? function () {
-         var storenameAvailableAction = {_: {}
-                                        ,actionType: "STORENAME_AVAILABLE"
-                                        ,payload: ""};
-         var storenameTakenAction = {_: {}
-                                    ,actionType: "STORENAME_TAKEN"
-                                    ,payload: ""};
-         var url = A2($Basics._op["++"],
-         "https://api.github.com/users/",
-         model.storename);
-         var request = A2($Http.get,
-         $Json$Decode.succeed(storenameTakenAction),
-         url);
-         var neverFailingRequest = A2($Task.onError,
-         request,
-         function (err) {
-            return $Task.succeed(storenameAvailableAction);
-         });
-         return {ctor: "_Tuple2"
-                ,_0: _U.replace([["errors"
-                                 ,getErrors(model)]],
-                model)
-                ,_1: $Effects.task(neverFailingRequest)};
-      }() : _U.eq(action.actionType,
-      "SET_EMAIL") ? {ctor: "_Tuple2"
-                     ,_0: _U.replace([["email"
-                                      ,action.payload]],
-                     model)
-                     ,_1: $Effects.none} : _U.eq(action.actionType,
-      "SET_PASSWORD") ? {ctor: "_Tuple2"
-                        ,_0: _U.replace([["password"
-                                         ,action.payload]],
-                        model)
-                        ,_1: $Effects.none} : _U.eq(action.actionType,
-      "SET_STORENAME") ? {ctor: "_Tuple2"
-                         ,_0: _U.replace([["storename"
-                                          ,action.payload]],
-                         model)
-                         ,_1: $Effects.none} : _U.eq(action.actionType,
-      "STORENAME_TAKEN") ? {ctor: "_Tuple2"
-                           ,_0: A2(withStorenameTaken,
-                           true,
-                           model)
-                           ,_1: $Effects.none} : _U.eq(action.actionType,
-      "STORENAME_AVAILABLE") ? {ctor: "_Tuple2"
-                               ,_0: A2(withStorenameTaken,
-                               false,
-                               model)
-                               ,_1: $Effects.none} : {ctor: "_Tuple2"
-                                                     ,_0: model
-                                                     ,_1: $Effects.none};
-   });
    var viewStorenameErrors = function (model) {
       return model.errors.storenameTaken ? "That storename is taken!" : model.errors.storename;
+   };
+   var StorenameAvailable = {ctor: "StorenameAvailable"};
+   var StorenameTaken = {ctor: "StorenameTaken"};
+   var update = F2(function (action,
+   model) {
+      return function () {
+         switch (action.ctor)
+         {case "SetEmail":
+            return {ctor: "_Tuple2"
+                   ,_0: _U.replace([["email"
+                                    ,action._0]],
+                   model)
+                   ,_1: $Effects.none};
+            case "SetPassword":
+            return {ctor: "_Tuple2"
+                   ,_0: _U.replace([["password"
+                                    ,action._0]],
+                   model)
+                   ,_1: $Effects.none};
+            case "SetStorename":
+            return {ctor: "_Tuple2"
+                   ,_0: _U.replace([["storename"
+                                    ,action._0]],
+                   model)
+                   ,_1: $Effects.none};
+            case "StorenameAvailable":
+            return {ctor: "_Tuple2"
+                   ,_0: A2(withStorenameTaken,
+                   false,
+                   model)
+                   ,_1: $Effects.none};
+            case "StorenameTaken":
+            return {ctor: "_Tuple2"
+                   ,_0: A2(withStorenameTaken,
+                   true,
+                   model)
+                   ,_1: $Effects.none};
+            case "Validate":
+            return function () {
+                 var url = A2($Basics._op["++"],
+                 "https://api.github.com/users/",
+                 model.storename);
+                 var request = A2($Http.get,
+                 $Json$Decode.succeed(StorenameTaken),
+                 url);
+                 var neverFailingRequest = A2($Task.onError,
+                 request,
+                 function (err) {
+                    return $Task.succeed(StorenameAvailable);
+                 });
+                 return {ctor: "_Tuple2"
+                        ,_0: _U.replace([["errors"
+                                         ,getErrors(model)]],
+                        model)
+                        ,_1: $Effects.task(neverFailingRequest)};
+              }();}
+         _U.badCase($moduleName,
+         "between lines 133 and 153");
+      }();
+   });
+   var SetStorename = function (a) {
+      return {ctor: "SetStorename"
+             ,_0: a};
    };
    var storenameInputView = F2(function (actionDispatcher,
    model) {
@@ -13296,18 +13304,20 @@ Elm.SignupForm.make = function (_elm) {
                                 ,A3($Html$Events.on,
                                 "input",
                                 $Html$Events.targetValue,
-                                function (str) {
+                                function (storename) {
                                    return A2($Signal.message,
                                    actionDispatcher,
-                                   {_: {}
-                                   ,actionType: "SET_STORENAME"
-                                   ,payload: str});
+                                   SetStorename(storename));
                                 })]),
                    _L.fromArray([]))
                    ,A2($Html.div,
                    _L.fromArray([$Html$Attributes.$class("error")]),
                    _L.fromArray([$Html.text(viewStorenameErrors(model))]))]));
    });
+   var SetPassword = function (a) {
+      return {ctor: "SetPassword"
+             ,_0: a};
+   };
    var passwordInputView = F2(function (actionDispatcher,
    model) {
       return A2($Html.div,
@@ -13322,18 +13332,20 @@ Elm.SignupForm.make = function (_elm) {
                                 ,A3($Html$Events.on,
                                 "input",
                                 $Html$Events.targetValue,
-                                function (str) {
+                                function (password) {
                                    return A2($Signal.message,
                                    actionDispatcher,
-                                   {_: {}
-                                   ,actionType: "SET_PASSWORD"
-                                   ,payload: str});
+                                   SetPassword(password));
                                 })]),
                    _L.fromArray([]))
                    ,A2($Html.div,
                    _L.fromArray([$Html$Attributes.$class("error")]),
                    _L.fromArray([$Html.text(model.errors.password)]))]));
    });
+   var SetEmail = function (a) {
+      return {ctor: "SetEmail"
+             ,_0: a};
+   };
    var emailInputView = F2(function (actionDispatcher,
    model) {
       return A2($Html.div,
@@ -13348,18 +13360,17 @@ Elm.SignupForm.make = function (_elm) {
                                 ,A3($Html$Events.on,
                                 "input",
                                 $Html$Events.targetValue,
-                                function (str) {
+                                function (email) {
                                    return A2($Signal.message,
                                    actionDispatcher,
-                                   {_: {}
-                                   ,actionType: "SET_EMAIL"
-                                   ,payload: str});
+                                   SetEmail(email));
                                 })]),
                    _L.fromArray([]))
                    ,A2($Html.div,
                    _L.fromArray([$Html$Attributes.$class("error")]),
                    _L.fromArray([$Html.text(model.errors.email)]))]));
    });
+   var Validate = {ctor: "Validate"};
    var view = F2(function (actionDispatcher,
    model) {
       return A2($Html.form,
@@ -13380,9 +13391,7 @@ Elm.SignupForm.make = function (_elm) {
                    _L.fromArray([$Html$Attributes.$class("btn btn-submit")
                                 ,A2($Html$Events.onClick,
                                 actionDispatcher,
-                                {_: {}
-                                ,actionType: "VALIDATE"
-                                ,payload: ""})]),
+                                Validate)]),
                    _L.fromArray([$Html.text("Create your store")]))]));
    });
    var app = $StartApp.start({_: {}
@@ -13395,11 +13404,6 @@ Elm.SignupForm.make = function (_elm) {
    var main = app.html;
    var tasks = Elm.Native.Task.make(_elm).performSignal("tasks",
    app.tasks);
-   var Action = F2(function (a,b) {
-      return {_: {}
-             ,actionType: a
-             ,payload: b};
-   });
    var Errors = F4(function (a,
    b,
    c,
@@ -13423,7 +13427,12 @@ Elm.SignupForm.make = function (_elm) {
    _elm.SignupForm.values = {_op: _op
                             ,Model: Model
                             ,Errors: Errors
-                            ,Action: Action
+                            ,Validate: Validate
+                            ,SetEmail: SetEmail
+                            ,SetPassword: SetPassword
+                            ,SetStorename: SetStorename
+                            ,StorenameTaken: StorenameTaken
+                            ,StorenameAvailable: StorenameAvailable
                             ,view: view
                             ,emailInputView: emailInputView
                             ,passwordInputView: passwordInputView

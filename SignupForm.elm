@@ -36,10 +36,17 @@ type alias Errors =
   , storenameTaken: Bool
   }
 
-type alias Action =
-  { actionType: String
-  , payload: String
-  }
+type alias Email = String
+type alias Password = String
+type alias Storename = String
+
+type Action
+  = Validate
+  | SetEmail Email
+  | SetPassword Password
+  | SetStorename Storename
+  | StorenameTaken
+  | StorenameAvailable
 
 ---------
 -- VIEW
@@ -57,7 +64,7 @@ view actionDispatcher model =
     , div
       [
         class "btn btn-submit"
-      , onClick actionDispatcher { actionType = "VALIDATE", payload = "" }
+      , onClick actionDispatcher Validate
       ]
       [ text "Create your store" ]
     ]
@@ -72,7 +79,7 @@ emailInputView actionDispatcher model =
       [ id "email"
       , type' "text"
       , value model.email
-      , on "input" targetValue (\str -> Signal.message actionDispatcher { actionType = "SET_EMAIL", payload = str })
+      , on "input" targetValue (\email -> Signal.message actionDispatcher (SetEmail email))
       ] []
     , div [ class "error"] [ text model.errors.email ]
     ]
@@ -87,7 +94,7 @@ passwordInputView actionDispatcher model =
       [ id "password"
       , type' "Password"
       , value model.password
-      , on "input" targetValue (\str -> Signal.message actionDispatcher { actionType = "SET_PASSWORD", payload = str })
+      , on "input" targetValue (\password -> Signal.message actionDispatcher (SetPassword password))
       ] []
     , div [ class "error"] [ text model.errors.password ]
     ]
@@ -102,7 +109,7 @@ storenameInputView actionDispatcher model =
       [ id "storename"
       , type' "text"
       , value model.storename
-      , on "input" targetValue (\str -> Signal.message actionDispatcher { actionType = "SET_STORENAME", payload = str })
+      , on "input" targetValue (\storename -> Signal.message actionDispatcher (SetStorename storename))
       ] []
     , div [ class "error" ] [ text (viewStorenameErrors model) ]
     ]
@@ -123,34 +130,28 @@ viewStorenameErrors model =
 -- and a description of any effects we want done (i.e. fire AJAX, start animation)
 update : Action -> Model -> (Model, Effects.Effects Action)
 update action model =
-  -- TODO: Why use a record with actionType instead of our own Elm union types?
-  -- see example: http://package.elm-lang.org/packages/evancz/start-app/2.0.1/
-  if action.actionType == "VALIDATE" then
-    let
-      url =
-        "https://api.github.com/users/" ++ model.storename
-      storenameTakenAction =
-        { actionType = "STORENAME_TAKEN", payload = "" }
-      storenameAvailableAction =
-        { actionType = "STORENAME_AVAILABLE", payload = "" }
-      request =
-        Http.get (succeed storenameTakenAction) url
-      neverFailingRequest =
-        Task.onError request (\err -> Task.succeed storenameAvailableAction)
-    in
-      ({ model | errors <- getErrors model }, Effects.task neverFailingRequest)
-  else if action.actionType == "SET_EMAIL" then
-    ( { model | email <- action.payload }, Effects.none )
-  else if action.actionType == "SET_PASSWORD" then
-    ( { model | password <- action.payload }, Effects.none )
-  else if action.actionType == "SET_STORENAME" then
-    ( { model | storename <- action.payload }, Effects.none )
-  else if action.actionType == "STORENAME_TAKEN" then
-    ( withStorenameTaken True model, Effects.none )
-  else if action.actionType == "STORENAME_AVAILABLE" then
-    ( withStorenameTaken False model, Effects.none )
-  else
-    ( model, Effects.none )
+  case action of
+    Validate ->
+      let
+        url =
+          "https://api.github.com/users/" ++ model.storename
+        request =
+          Http.get (succeed StorenameTaken) url
+        neverFailingRequest =
+          Task.onError request (\err -> Task.succeed StorenameAvailable)
+      in
+        ({ model | errors <- getErrors model }, Effects.task neverFailingRequest)
+    SetEmail email ->
+      ( { model | email <- email }, Effects.none )
+    SetPassword password ->
+      ( { model | password <- password }, Effects.none)
+    SetStorename storename ->
+      ( { model | storename <- storename }, Effects.none)
+    StorenameTaken ->
+      ( withStorenameTaken True model, Effects.none )
+    StorenameAvailable ->
+      ( withStorenameTaken False model, Effects.none )
+
 
 -- TODO: Use a proper submit input and intercept the form submit evet
 -- https://groups.google.com/forum/#!msg/elm-discuss/W3X_m1mE70w/02J3Jf4dCQAJ
