@@ -13192,6 +13192,16 @@ Elm.SignupForm.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $StartApp = Elm.StartApp.make(_elm),
    $Task = Elm.Task.make(_elm);
+   var initialErrors = {_: {}
+                       ,email: ""
+                       ,password: ""
+                       ,storename: ""
+                       ,storenameTaken: false};
+   var initialModel = {_: {}
+                      ,email: ""
+                      ,errors: initialErrors
+                      ,password: ""
+                      ,storename: ""};
    var withStorenameTaken = F2(function (isTaken,
    model) {
       return function () {
@@ -13204,16 +13214,6 @@ Elm.SignupForm.make = function (_elm) {
          model);
       }();
    });
-   var initialErrors = {_: {}
-                       ,email: ""
-                       ,password: ""
-                       ,storename: ""
-                       ,storenameTaken: false};
-   var initialModel = {_: {}
-                      ,email: ""
-                      ,errors: initialErrors
-                      ,password: ""
-                      ,storename: ""};
    var getErrors = function (model) {
       return {_: {}
              ,email: _U.eq(model.email,
@@ -13424,16 +13424,16 @@ Elm.SignupForm.make = function (_elm) {
                             ,Model: Model
                             ,Errors: Errors
                             ,Action: Action
+                            ,view: view
                             ,emailInputView: emailInputView
                             ,passwordInputView: passwordInputView
                             ,storenameInputView: storenameInputView
                             ,viewStorenameErrors: viewStorenameErrors
-                            ,view: view
+                            ,update: update
                             ,getErrors: getErrors
+                            ,withStorenameTaken: withStorenameTaken
                             ,initialErrors: initialErrors
                             ,initialModel: initialModel
-                            ,update: update
-                            ,withStorenameTaken: withStorenameTaken
                             ,app: app
                             ,main: main};
    return _elm.SignupForm.values;

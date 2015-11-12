@@ -18,6 +18,10 @@ import Json.Decode exposing (succeed)
 -- namespace, specifically "id", "type'", "for", "value", and "class".
 import Html.Attributes exposing (id, type', for, value, class)
 
+--------
+-- MODEL
+--------
+
 type alias Model =
   { email: String
   , password: String
@@ -36,6 +40,27 @@ type alias Action =
   { actionType: String
   , payload: String
   }
+
+---------
+-- VIEW
+---------
+
+-- The view function which takes a model as its only argument
+view : Signal.Address Action -> Model -> Html
+view actionDispatcher model =
+  form
+    [ id "form-signup" ]
+    [ h1 [ class "text-center" ] [ text "Start your free 999-day trial of Shopify" ]
+    , emailInputView actionDispatcher model
+    , passwordInputView actionDispatcher model
+    , storenameInputView actionDispatcher model
+    , div
+      [
+        class "btn btn-submit"
+      , onClick actionDispatcher { actionType = "VALIDATE", payload = "" }
+      ]
+      [ text "Create your store" ]
+    ]
 
 emailInputView : Signal.Address Action -> Model -> Html
 emailInputView actionDispatcher model =
@@ -89,58 +114,13 @@ viewStorenameErrors model =
   else
     model.errors.storename
 
--- The view function which takes a model as its only argument
-view : Signal.Address Action -> Model -> Html
-view actionDispatcher model =
-  form
-    [ id "form-signup" ]
-    [ h1 [ class "text-center" ] [ text "Start your free 999-day trial of Shopify" ]
-    , emailInputView actionDispatcher model
-    , passwordInputView actionDispatcher model
-    , storenameInputView actionDispatcher model
-    , div
-      [
-        class "btn btn-submit"
-      , onClick actionDispatcher { actionType = "VALIDATE", payload = "" }
-      ]
-      [ text "Create your store" ]
-    ]
-
--- TODO: Use a proper submit input and intercept the form submit evet
--- https://groups.google.com/forum/#!msg/elm-discuss/W3X_m1mE70w/02J3Jf4dCQAJ
-getErrors : Model -> Errors
-getErrors model =
-  { email =
-      if model.email == "" then
-        "Please enter a email!"
-      else
-        ""
-  , password =
-      if model.password == "" then
-        "Please enter a password!"
-      else
-        ""
-  , storename =
-      if model.storename == "" then
-        "Please enter a storename"
-      else
-        ""
-  , storenameTaken =
-      model.errors.storenameTaken
-  }
-
-initialErrors : Errors
-initialErrors =
-  { email = "", password = "", storename = "", storenameTaken = False }
-
-initialModel : Model
-initialModel =
-  { email = "", password = "", storename = "", errors = initialErrors }
+--------
+-- UPDATE
+--------
 
 -- The update function takes an action and a model and returns
 -- a new, updated model
 -- and a description of any effects we want done (i.e. fire AJAX, start animation)
--- TODO: Why does this type annotation work?
 update : Action -> Model -> (Model, Effects.Effects Action)
 update action model =
   -- TODO: Why use a record with actionType instead of our own Elm union types?
@@ -172,6 +152,29 @@ update action model =
   else
     ( model, Effects.none )
 
+-- TODO: Use a proper submit input and intercept the form submit evet
+-- https://groups.google.com/forum/#!msg/elm-discuss/W3X_m1mE70w/02J3Jf4dCQAJ
+getErrors : Model -> Errors
+getErrors model =
+  { email =
+      if model.email == "" then
+        "Please enter a email!"
+      else
+        ""
+  , password =
+      if model.password == "" then
+        "Please enter a password!"
+      else
+        ""
+  , storename =
+      if model.storename == "" then
+        "Please enter a storename"
+      else
+        ""
+  , storenameTaken =
+      model.errors.storenameTaken
+  }
+
 withStorenameTaken : Bool -> Model -> Model
 withStorenameTaken isTaken model =
   let
@@ -181,6 +184,18 @@ withStorenameTaken isTaken model =
       { currentErrors | storenameTaken <- isTaken }
   in
    { model | errors <- newErrors }
+
+--------
+-- RUN APP
+--------
+
+initialErrors : Errors
+initialErrors =
+  { email = "", password = "", storename = "", storenameTaken = False }
+
+initialModel : Model
+initialModel =
+  { email = "", password = "", storename = "", errors = initialErrors }
 
 -- This sets up the elm architecture using StartApp which wraps some boilerplate wiring
 app : StartApp.App Model
@@ -192,11 +207,11 @@ app =
     , inputs = []
     }
 
--- TODO: Why Signal Html type coming out of here?
 main : Signal Html
 main =
   app.html
 
+-- Some sort of wiring up for the Effects signals?
 port tasks : Signal (Task Effects.Never ())
 port tasks =
   app.tasks
